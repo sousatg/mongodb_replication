@@ -1,0 +1,44 @@
+version: "3.8"
+services:
+  mongo1: 
+    container_name: mongo1
+    image: mongo:latest
+    command: --bind_ip_all --replSet rs0
+    ports:
+      - '28017:27017'
+    volumes:
+      - mongodb_data_container:/data/mongod1db
+      - ./scripts/mongodb/rs-init.sh:/scripts/rs-init.sh
+    networks:
+      mongo-network:
+        aliases:
+          - mongo1.localhost
+        ipv4_address: 172.20.0.2
+    links:
+      - mongo2
+  mongo2:
+    container_name: mongo2
+    image: mongo:latest
+    command: --bind_ip_all --replSet rs0
+    ports:
+      - '29017:27017'
+    volumes:
+      - mongodb_data_container:/data/mongod2db
+    networks:
+      mongo-network:
+        aliases:
+          - mongo2.localhost
+        ipv4_address: 172.20.0.3
+volumes:
+  mongodb_data_container:
+  cache:
+    driver: local
+
+networks:
+  mongo-network:
+    name: mongo-network
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+          gateway: 172.20.0.254
